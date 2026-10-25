@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Ron Rude Decimal Clock</title>
+<style>
+  :root { color-scheme: light; --ink:#080808; --paper:#fff; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; min-height:100%; background:var(--paper); font-family:Arial,Helvetica,sans-serif; }
+  body { display:flex; flex-direction:column; align-items:center; padding:12px 12px 22px; }
+  .topbar { width:min(96vw, 1200px); display:grid; grid-template-columns:minmax(0,1fr) minmax(300px, 42%); gap:18px; align-items:start; margin:0 auto 4px; }
+  .toolbar { min-width:0; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:7px; margin:0; color:#222; }
+  .brand { font-size:14px; font-weight:600; letter-spacing:.04em; line-height:1.45; }
+  .brand small { display:block; font-size:12px; font-weight:400; letter-spacing:0; }
+  .controls { display:flex; gap:8px; align-items:center; }
+  .converter { width:100%; min-width:0; margin:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:5px 8px; color:#222; align-self:start; }
+  .converter-title { display:none; }
+  .convert-row { display:grid; grid-template-columns:1fr; gap:3px; min-width:0; }
+  .convert-row label { font-size:12px; font-weight:600; }
+  .convert-row input { width:100%; min-width:0; padding:5px 7px; border:1px solid #aaa; border-radius:6px; background:#fff; color:#222; font:600 16px Arial, sans-serif; font-variant-numeric:tabular-nums; }
+  .convert-result { align-self:center; font-size:12px; color:#666; font-variant-numeric:tabular-nums; padding-top:1px; }
+  .converter-help { grid-column:1 / -1; color:#666; font-size:10px; line-height:1.3; }
+  button { font:inherit; font-size:13px; padding:7px 10px; border:1px solid #999; border-radius:5px; background:#fff; color:#222; cursor:pointer; }
+  button:hover { background:#f2f2f2; }
+  button:focus-visible { outline:2px solid #286ac7; outline-offset:2px; }
+  .readout { width:min(94vw,850px); text-align:center; margin:2px auto 8px; color:#333; }
+  #decimalTime { font-variant-numeric:tabular-nums; font-size:clamp(22px,3.5vw,32px); letter-spacing:.06em; }
+  #conventionalTime { margin-top:3px; font-size:13px; color:#666; font-variant-numeric:tabular-nums; }
+  .dial-wrap { width:min(94vw, 94vh, 850px); aspect-ratio:1; position:relative; }
+  canvas { display:block; width:100%; height:100%; }
+  .note { width:min(94vw,850px); margin:10px auto 0; color:#555; font-size:12px; line-height:1.5; text-align:center; }
+  @media (max-width:600px) {
+    body {padding:8px 5px 16px}
+    .topbar {width:96vw; grid-template-columns:minmax(0,1fr); gap:8px; margin-bottom:2px}
+    .toolbar {width:100%; align-items:flex-start}
+    .converter {width:100%; gap:4px 8px; max-width:100%;}
+    .convert-row label {font-size:11px}
+    .convert-row input {font-size:16px;padding:5px 6px}
+    .convert-result {font-size:12px}
+    .converter-help {font-size:10px}
+    .readout,.note {width:96vw}
+    .dial-wrap {width:96vw}
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <header class="toolbar">
+      <div class="brand">The Ron Rude Decimal Clock<small>10hrs/day, 100mins/hr, 100sec/min</small></div>
+      <div class="controls">
+        <button id="labelsBtn" type="button" aria-pressed="true">Hide numerals</button>
+      </div>
+    </header>
+    <section class="converter" aria-label="Time converter">
+      <div class="convert-row">
+        <label for="sexagesimalInput">Traditional (hh:mm)</label>
+        <input id="sexagesimalInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="e.g. 09:30" aria-describedby="converterHelp">
+        <div class="convert-result">Decimal: <strong id="decimalResult" aria-live="polite"></strong></div>
+      </div>
+      <div class="convert-row">
+        <label for="decimalInput">Decimal (h:mm)</label>
+        <input id="decimalInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="e.g. 3:96" aria-describedby="converterHelp">
+        <div class="convert-result">Traditional: <strong id="sexagesimalResult" aria-live="polite"></strong></div>
+      </div>
+      <div class="converter-help" id="converterHelp">Enter a valid time; the equivalent appears below. Invalid entries clear the result.</div>
+    </section>
+  </div>
+  <section class="readout" aria-live="off">
+    <div id="decimalTime">10:00:00</div>
+    <div id="conventionalTime">Traditional sexagesimal 24hr time: --:--:--</div>
+  </section>
+  <main class="dial-wrap">
+    <canvas id="dial" role="img" aria-label="A live decimal clock with ten decimal hours, one hundred minute divisions, and a red decimal-second hand."></canvas>
+  </main>
+  <p class="note">One decimal day = 24 conventional hours; one decimal hour = 2 h 24 min; one decimal minute = 86.4 conventional seconds; one decimal second = 0.864 conventional seconds.</p>
+<script>
+(() => {
+  "use strict";
+  const canvas = document.getElementById("dial");
+  const ctx = canvas.getContext("2d");
+  const decimalTime = document.getElementById("decimalTime");
+  const conventionalTime = document.getElementById("conventionalTime");
+  const labelsBtn = document.getElementById("labelsBtn");
+  const sexagesimalInput = document.getElementById("sexagesimalInput");
+  const decimalInput = document.getElementById("decimalInput");
+  const decimalResult = document.getElementById("decimalResult");
+  const sexagesimalResult = document.getElementById("sexagesimalResult");
+
+
+  let showNumerals = true;
+  let timerId = null;
+
+  // Clockwise from 12 o'clock: green (night), blue (morning), red (afternoon), yellow (evening).
+  const quadrantColors = ["#5da331", "#5d80b7", "#f05b35", "#e4c20a"];
+
+  function sizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  function getTime() {
+    return new Date();
+  }
+
+  function pad(n) { return String(n).padStart(2, "0"); }
+
+  function timeParts(date) {
+    const ms = date.getHours() * 3600000 + date.getMinutes() * 60000 +
+               date.getSeconds() * 1000 + date.getMilliseconds();
+    const decimalDay = ms / 86400000 * 10; // 0 <= decimalDay < 10
+    const wholeHour = Math.floor(decimalDay);
+    const withinHour = decimalDay - wholeHour;
+    const decimalMinute = withinHour * 100;
+    const wholeMinute = Math.floor(decimalMinute);
+    const withinMinute = decimalMinute - wholeMinute;
+    const decimalSecond = withinMinute * 100;
+    return { decimalDay, wholeHour, decimalMinute, wholeMinute, decimalSecond };
+  }
+
+  function draw() {
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    if (!w || !h) return;
+    const s = Math.min(w, h);
+    const cx = w / 2, cy = h / 2;
+    const r = s * 0.475;
+    ctx.clearRect(0, 0, w, h);
+    ctx.lineCap = "butt";
+    ctx.lineJoin = "round";
+
+    // Four coloured sectors, starting at 12 o'clock.
+    for (let q = 0; q < 4; q++) {
+      const start = -Math.PI / 2 + q * Math.PI / 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, start, start + Math.PI / 2);
+      ctx.closePath();
+      ctx.fillStyle = quadrantColors[q];
+      ctx.fill();
+    }
+
+    // Outer rim.
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = "#080808";
+    ctx.lineWidth = Math.max(1.5, s * 0.0025);
+    ctx.stroke();
+
+    // No internal quadrant outlines: the colour fields meet cleanly.
+
+    // 100 divisions. Major hour marks every 10th division.
+    for (let i = 0; i < 100; i++) {
+      const a = -Math.PI / 2 + i * Math.PI * 2 / 100;
+      const isHour = i % 10 === 0;
+      const isHalf = i % 5 === 0;
+      const outer = r - s * 0.002;
+      const len = isHour ? s * 0.040 : isHalf ? s * 0.023 : s * 0.016;
+      const inner = outer - len;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * outer, cy + Math.sin(a) * outer);
+      ctx.lineTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+      ctx.strokeStyle = "#080808";
+      ctx.lineWidth = isHour ? Math.max(2, s * 0.008) : isHalf ? Math.max(1.4, s * 0.003) : Math.max(0.8, s * 0.0015);
+      ctx.stroke();
+    }
+
+    // Simple, solid circular markers with small labels, as requested.
+    // Clockwise from the top: Night, Morning, Afternoon, Evening.
+    function drawPeriodMarker(x, y, color, label) {
+      const radius = r * 0.0528; // half the previous Afternoon icon's diameter
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.fillStyle = color === "#111111" ? "#111111" : (color === "#ffffff" ? "#ffffff" : color);
+      ctx.font = `500 ${Math.max(9, s * 0.016)}px Arial, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      // Use a tiny dark/white contrast label appropriate to the quadrant.
+      ctx.fillStyle = label === "Night" ? "#111111" : label === "Afternoon" ? "#ffffff" : label === "Evening" ? "#a61b28" : "#fff200";
+      ctx.fillText(label, x, y + radius + s * 0.008);
+      ctx.restore();
+    }
+    const markerRadius = r * 0.43;
+    drawPeriodMarker(cx + Math.cos(-Math.PI/4)*markerRadius, cy + Math.sin(-Math.PI/4)*markerRadius, "#111111", "Night");
+    drawPeriodMarker(cx + Math.cos(Math.PI/4)*markerRadius, cy + Math.sin(Math.PI/4)*markerRadius, "#fff200", "Morning");
+    drawPeriodMarker(cx + Math.cos(3*Math.PI/4)*markerRadius, cy + Math.sin(3*Math.PI/4)*markerRadius, "#ffffff", "Afternoon");
+    drawPeriodMarker(cx + Math.cos(-3*Math.PI/4)*markerRadius, cy + Math.sin(-3*Math.PI/4)*markerRadius, "#e32636", "Evening");
+
+    // Hour numerals: purple figures on muted grey discs for contrast.
+    if (showNumerals) {
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = `600 ${Math.max(13, s * 0.036)}px Arial, sans-serif`;
+      const nr = r * 0.79;
+      const discRadius = Math.max(17, s * 0.041);
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI * 2 / 10;
+        const x = cx + Math.cos(a) * nr;
+        const y = cy + Math.sin(a) * nr;
+        const label = i === 0 ? "0" : String(i);
+        ctx.beginPath();
+        ctx.arc(x, y, discRadius, 0, Math.PI * 2);
+        // Use quadrant-matched, slightly brighter fills. The two boundary
+        // numerals blend the adjacent quadrant colours with a horizontal gradient.
+        if (i === 0) {
+          const gradient = ctx.createLinearGradient(x - discRadius, y, x + discRadius, y);
+          gradient.addColorStop(0, "rgb(230, 199, 20)");
+          gradient.addColorStop(1, "rgb(73, 166, 68)");
+          ctx.fillStyle = gradient;
+        } else if (i === 5) {
+          const gradient = ctx.createLinearGradient(x - discRadius, y, x + discRadius, y);
+          gradient.addColorStop(0, "rgb(233, 90, 78)");
+          gradient.addColorStop(1, "rgb(88, 123, 198)");
+          ctx.fillStyle = gradient;
+        } else if (i === 1 || i === 2) {
+          ctx.fillStyle = "rgb(73, 166, 68)";
+        } else if (i === 3 || i === 4) {
+          ctx.fillStyle = "rgb(88, 123, 198)";
+        } else if (i === 6 || i === 7) {
+          ctx.fillStyle = "rgb(233, 90, 78)";
+        } else {
+          ctx.fillStyle = "rgb(230, 199, 20)";
+        }
+        ctx.fill();
+        ctx.fillStyle = "#7028a0";
+        ctx.fillText(label, x, y);
+      }
+    }
+
+    const t = timeParts(getTime());
+    // Hour hand: one full lap per conventional day; 10 decimal hours.
+    const hourAngle = -Math.PI / 2 + t.decimalDay * Math.PI * 2 / 10;
+    // Minute hand: one full lap per decimal hour (100 decimal minutes).
+    const minuteAngle = -Math.PI / 2 + t.decimalMinute * Math.PI * 2 / 100;
+    // Red second hand: one full lap per decimal minute (100 decimal seconds).
+    const secondAngle = -Math.PI / 2 + t.decimalSecond * Math.PI * 2 / 100;
+
+    function hand(angle, length, width, color, tail = 0, outline = null) {
+      const x1 = cx - Math.cos(angle) * tail;
+      const y1 = cy - Math.sin(angle) * tail;
+      const x2 = cx + Math.cos(angle) * length;
+      const y2 = cy + Math.sin(angle) * length;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = "butt";
+      if (outline) {
+        ctx.strokeStyle = outline;
+        ctx.lineWidth = width + Math.max(1, s * 0.002);
+        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+        ctx.strokeStyle = color; ctx.lineWidth = width; ctx.stroke();
+      } else ctx.stroke();
+    }
+
+    // Minute hand longer than hour hand; slim tapered visual approximation.
+    hand(hourAngle, r * 0.36, s * 0.018, "#111111", r * 0.09);
+    hand(minuteAngle, r * 0.94, s * 0.012, "#050505", r * 0.10);
+    hand(secondAngle, r * 0.91, Math.max(2, s * 0.006), "#888888", r * 0.07);
+
+    // Central pivot.
+    ctx.beginPath();
+    ctx.arc(cx, cy, s * 0.014, 0, Math.PI * 2);
+    ctx.fillStyle = "#080808";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, s * 0.0045, 0, Math.PI * 2);
+    ctx.fillStyle = "#888888";
+    ctx.fill();
+
+    // Decimal display. At midnight the display rolls to 00:00:00, the dial's top.
+    const hh = t.wholeHour;
+    const mm = Math.floor(t.decimalMinute) % 100;
+    const ss = Math.floor(t.decimalSecond) % 100;
+    decimalTime.textContent = `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+    conventionalTime.textContent = `Traditional sexagesimal 24hr time: ${getTime().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false})}`;
+
+  }
+
+  // A single lightweight timer keeps the live clock running.
+  function startClock() {
+    if (timerId !== null) return;
+    timerId = window.setInterval(draw, 50);
+  }
+
+  function parseSexagesimal(value) {
+    const m = value.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const h = Number(m[1]), min = Number(m[2]);
+    if (h > 24 || min > 60 || (h === 24 && min !== 0)) return null;
+    return (h * 60 + min) / 1440;
+  }
+
+  function parseDecimal(value) {
+    const m = value.trim().match(/^(\d):(\d{2})$/);
+    if (!m) return null;
+    const h = Number(m[1]), min = Number(m[2]);
+    if (h > 9 || min > 99) return null;
+    return (h * 100 + min) / 1000;
+  }
+
+  function formatDecimalDay(fraction) {
+    const total = Math.round(fraction * 1000);
+    const h = Math.floor(total / 100) % 10;
+    const min = total % 100;
+    return `${h}:${pad(min)}`;
+  }
+
+  function formatTraditionalDay(fraction) {
+    const totalMinutes = Math.round(fraction * 1440) % 1440;
+    return `${pad(Math.floor(totalMinutes / 60))}:${pad(totalMinutes % 60)}`;
+  }
+
+  sexagesimalInput.addEventListener("input", () => {
+    const fraction = parseSexagesimal(sexagesimalInput.value);
+    decimalResult.textContent = fraction === null ? "" : formatDecimalDay(fraction);
+  });
+  decimalInput.addEventListener("input", () => {
+    const fraction = parseDecimal(decimalInput.value);
+    sexagesimalResult.textContent = fraction === null ? "" : formatTraditionalDay(fraction);
+  });
+
+  labelsBtn.addEventListener("click", () => {
+    showNumerals = !showNumerals;
+    labelsBtn.textContent = showNumerals ? "Hide numerals" : "Show numerals";
+    labelsBtn.setAttribute("aria-pressed", String(showNumerals));
+    draw();
+  });
+  window.addEventListener("resize", sizeCanvas);
+  sizeCanvas();
+  startClock();
+})();
+</script>
+</body>
+</html>
