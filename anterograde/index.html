@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Ron Rude Decimal Clock</title>
+<title>The Anterograde Decimal Clock</title>
 <meta name="description" content="A live analogue decimal clock: 10 hours per day, 100 minutes per hour, and 100 seconds per minute.">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="The Ron Rude Decimal Clock">
-<meta property="og:title" content="The Ron Rude Decimal Clock">
+<meta property="og:site_name" content="The Anterograde Decimal Clock">
+<meta property="og:title" content="The Anterograde Decimal Clock">
 <meta property="og:description" content="What if we measured the day in decimal? Explore a live decimal clock with four coloured day-period quadrants.">
 <meta property="og:url" content="https://ron-rude.github.io/">
 <meta property="og:image" content="https://ron-rude.github.io/clock-preview.png">
@@ -16,7 +16,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="The Ron Rude Decimal Clock">
+<meta name="twitter:title" content="The Anterograde Decimal Clock">
 <meta name="twitter:description" content="A live analogue decimal clock: 10 hours per day, 100 minutes per hour, and 100 seconds per minute.">
 <meta name="twitter:image" content="https://ron-rude.github.io/clock-preview.png">
 <style>
@@ -24,45 +24,67 @@
   * { box-sizing:border-box; }
   html, body { margin:0; min-height:100%; background:var(--paper); font-family:Arial,Helvetica,sans-serif; }
   body { display:flex; flex-direction:column; align-items:center; padding:12px 12px 22px; }
-  .topbar { width:min(96vw, 1200px); display:grid; grid-template-columns:minmax(0,1fr) minmax(300px, 42%); gap:18px; align-items:start; margin:0 auto 4px; }
+  .topbar { position:absolute; top:8px; left:50%; transform:translateX(-50%); width:min(96vw, 1200px); display:grid; grid-template-columns:minmax(0,1fr) max-content; gap:16px; align-items:start; margin:0 auto 2px; }
   .toolbar { min-width:0; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:7px; margin:0; color:#222; }
   .brand { font-size:14px; font-weight:600; letter-spacing:.04em; line-height:1.45; }
   .brand small { display:block; font-size:12px; font-weight:400; letter-spacing:0; }
   .controls { display:flex; gap:8px; align-items:center; }
-  .converter { width:100%; min-width:0; margin:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:5px 8px; color:#222; align-self:start; }
+  .converter { width:300px; max-width:100%; min-width:0; margin:0; padding:6px 8px; border:1px solid #ccc; border-radius:7px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 8px; color:#222; align-self:start; justify-self:end; }
   .converter-title { display:none; }
-  .convert-row { display:grid; grid-template-columns:1fr; gap:3px; min-width:0; }
+  .convert-row { display:grid; grid-template-columns:minmax(0,1fr); gap:3px; min-width:0; width:100%; }
   .convert-row label { font-size:12px; font-weight:600; }
-  .convert-row input { width:100%; min-width:0; padding:5px 7px; border:1px solid #aaa; border-radius:6px; background:#fff; color:#222; font:600 16px Arial, sans-serif; font-variant-numeric:tabular-nums; }
+  .convert-row input { width:100%; min-width:0; max-width:100%; padding:5px 7px; border:1px solid #aaa; border-radius:6px; background:#fff; color:#222; font:600 15px Arial, sans-serif; font-variant-numeric:tabular-nums; }
   .convert-result { align-self:center; font-size:12px; color:#666; font-variant-numeric:tabular-nums; padding-top:1px; }
-  .converter-help { grid-column:1 / -1; color:#666; font-size:10px; line-height:1.3; }
+  .converter-help { grid-column:1 / -1; min-width:0; max-width:100%; white-space:normal; overflow-wrap:break-word; color:#666; font-size:10px; line-height:1.3; }
   button { font:inherit; font-size:13px; padding:7px 10px; border:1px solid #999; border-radius:5px; background:#fff; color:#222; cursor:pointer; }
   button:hover { background:#f2f2f2; }
   button:focus-visible { outline:2px solid #286ac7; outline-offset:2px; }
-  .readout { width:min(94vw,850px); text-align:center; margin:2px auto 8px; color:#333; }
+  .readout { width:min(94vw,850px); text-align:center; margin:62px auto 3px; color:#333; }
   #decimalTime { font-variant-numeric:tabular-nums; font-size:clamp(22px,3.5vw,32px); letter-spacing:.06em; }
   #conventionalTime { margin-top:3px; font-size:13px; color:#666; font-variant-numeric:tabular-nums; }
-  .dial-wrap { width:min(94vw, 94vh, 850px); aspect-ratio:1; position:relative; }
+  .dial-wrap { width:min(94vw, calc(100vh - 138px), 850px); aspect-ratio:1; position:relative; }
+  .clock-layout { position:relative; width:min(96vw,1200px); display:flex; justify-content:center; align-items:flex-start; flex:0 0 auto; }
+  .equivalent-times { position:absolute; left:0; bottom:12px; display:flex; flex-direction:column; gap:13px; color:#333; font-variant-numeric:tabular-nums; }
+  .time-block { display:flex; flex-direction:column; gap:3px; }
+  .time-label { font-size:11px; color:#666; line-height:1.2; }
+  .time-value { font-size:20px; letter-spacing:.015em; white-space:nowrap; }
+  .time-block:first-child .time-value { font-size:23px; }
+  .legend { position:absolute; right:0; bottom:12px; width:150px; color:#555; font-size:10px; line-height:1.35; }
+  .legend-title { font-size:11px; font-weight:600; margin-bottom:5px; color:#444; }
+  .legend-row { display:grid; grid-template-columns:10px 1fr; gap:5px; align-items:center; margin:3px 0; }
+  .swatch { display:inline-block; width:9px; height:9px; border-radius:50%; border:1px solid #999; }
   canvas { display:block; width:100%; height:100%; }
   .note { width:min(94vw,850px); margin:10px auto 0; color:#555; font-size:12px; line-height:1.5; text-align:center; }
   @media (max-width:600px) {
     body {padding:8px 5px 16px}
-    .topbar {width:96vw; grid-template-columns:minmax(0,1fr); gap:8px; margin-bottom:2px}
+    .topbar {position:static; transform:none; width:96vw; grid-template-columns:minmax(0,1fr); gap:8px; margin-bottom:2px}
     .toolbar {width:100%; align-items:flex-start}
-    .converter {width:100%; gap:4px 8px; max-width:100%;}
+    .converter {width:100%; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:4px 8px; max-width:100%; justify-self:stretch;}
+    .convert-row {width:100%;}
+    .convert-row input {width:100%;}
     .convert-row label {font-size:11px}
     .convert-row input {font-size:16px;padding:5px 6px}
     .convert-result {font-size:12px}
     .converter-help {font-size:10px}
     .readout,.note {width:96vw}
-    .dial-wrap {width:96vw}
+    .readout {margin:4px auto 8px}
+    .clock-layout { width:96vw; display:flex; flex-direction:column; gap:6px; }
+    .dial-wrap { order:0; width:96vw; }
+    .equivalent-times { position:static; order:1; width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+    .time-block { min-width:0; gap:2px; }
+    .time-label { font-size:9px; }
+    .time-value,.time-block:first-child .time-value { font-size:clamp(12px,3.6vw,18px); letter-spacing:0; white-space:normal; overflow-wrap:anywhere; }
+    .legend { position:static; order:2; width:100%; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:3px 6px; padding:4px 0 0; }
+    .legend-title { grid-column:1/-1; margin:0; }
+    .legend-row { font-size:10px; grid-template-columns:9px 1fr; gap:3px; }
+    .swatch { width:8px; height:8px; }
   }
 </style>
 </head>
 <body>
   <div class="topbar">
     <header class="toolbar">
-      <div class="brand">The Ron Rude Decimal Clock<small>10hrs/day, 100mins/hr, 100sec/min</small></div>
+      <div class="brand">The Anterograde Decimal Clock<small>© Ron Rude 2026</small><small>10hrs/day, 100mins/hr, 100sec/min</small></div>
       <div class="controls">
         <button id="labelsBtn" type="button" aria-pressed="true">Hide numerals</button>
       </div>
@@ -85,10 +107,24 @@
     <div id="decimalTime">0.0000</div>
     <div id="conventionalTime">Traditional sexagesimal 24hr time: --:--:--</div>
   </section>
-  <main class="dial-wrap">
-    <canvas id="dial" role="img" aria-label="A live decimal clock with ten decimal hours, one hundred minute divisions, and a red decimal-second hand."></canvas>
+  <main class="clock-layout">
+    <aside class="equivalent-times" aria-label="Equivalent current times">
+      <div class="time-block"><div class="time-label">Retrograde Decimal Time</div><div class="time-value" id="retrogradeTime">N25.000-CD</div></div>
+      <div class="time-block"><div class="time-label">Sexagesimal 24 hr Time</div><div class="time-value" id="sexagesimal24">00:00:00</div></div>
+      <div class="time-block"><div class="time-label">Sexagesimal 12 hr Time</div><div class="time-value" id="sexagesimal12">12:00:00am</div></div>
+    </aside>
+    <div class="dial-wrap">
+    <canvas id="dial" role="img" aria-label="A live decimal clock with ten decimal hours and one hundred minute divisions."></canvas>
+    </div>
+    <aside class="legend" aria-label="Day period colour key">
+      <div class="legend-title">Colour key</div>
+      <div class="legend-row"><i class="swatch" style="background:#5da331"></i><span>Night</span></div>
+      <div class="legend-row"><i class="swatch" style="background:#5d80b7"></i><span>Morning</span></div>
+      <div class="legend-row"><i class="swatch" style="background:#f05b35"></i><span>Afternoon</span></div>
+      <div class="legend-row"><i class="swatch" style="background:#e4c20a"></i><span>Evening</span></div>
+    </aside>
   </main>
-  <p class="note">One decimal day = 24 conventional hours; one decimal hour = 2 h 24 min; one decimal minute = 86.4 conventional seconds; one decimal second = 0.864 conventional seconds.</p>
+
 <script>
 (() => {
   "use strict";
@@ -135,6 +171,22 @@
     const withinMinute = decimalMinute - wholeMinute;
     const decimalSecond = withinMinute * 100;
     return { decimalDay, wholeHour, decimalMinute, wholeMinute, decimalSecond };
+  }
+
+  function displayEquivalentTimes(date) {
+    const dayMs = date.getHours()*3600000 + date.getMinutes()*60000 + date.getSeconds()*1000 + date.getMilliseconds();
+    const units = dayMs / 86400000 * 100000;
+    const quartol = Math.min(3, Math.floor(units/25000));
+    const remaining = 25000 - (units - quartol*25000);
+    const h = Math.floor(remaining/1000);
+    const m = Math.floor((remaining-h*1000)/100);
+    const s = Math.floor(remaining-h*1000-m*100);
+    const names = ["N","M","A","E"], ends = ["CD","CN","CE","CM"];
+    document.getElementById("retrogradeTime").textContent =
+      `${names[quartol]}${pad(h)}.${m}${pad(s)}-${ends[quartol]}`;
+    const h24=date.getHours(), mi=pad(date.getMinutes()), sec=pad(date.getSeconds());
+    document.getElementById("sexagesimal24").textContent=`${pad(h24)}:${mi}:${sec}`;
+    document.getElementById("sexagesimal12").textContent=`${h24%12||12}:${mi}:${sec}${h24<12?"am":"pm"}`;
   }
 
   function draw() {
@@ -249,7 +301,9 @@
       }
     }
 
-    const t = timeParts(getTime());
+    const now = getTime();
+    const t = timeParts(now);
+    displayEquivalentTimes(now);
     // Hour hand: one full lap per conventional day; 10 decimal hours.
     const hourAngle = -Math.PI / 2 + t.decimalDay * Math.PI * 2 / 10;
     // Minute hand: one full lap per decimal hour (100 decimal minutes).
