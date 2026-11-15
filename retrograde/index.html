@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ron Rude Retrograde Decimal Clock</title>
+<title>The Retrograde Decimal Clock</title>
 <style>
 :root{
   --paper:#fff;--ink:#080808;
@@ -14,35 +14,40 @@
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--paper);font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
 body{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:12px 12px 16px}
-.topbar{width:min(96vw,1200px);display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,42%);gap:18px;align-items:start;margin:0 auto 2px}
+.topbar{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:min(96vw,1200px);display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:16px;align-items:start;margin:0 auto 1px}
 .toolbar{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px;color:#222}
 .brand{font-size:14px;font-weight:600;letter-spacing:.04em;line-height:1.45}
-.controls{display:flex;align-items:flex-end;gap:7px;flex-wrap:wrap}
+.brand small{display:block;font-size:12px;font-weight:400;letter-spacing:0}
+.controls{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.control-entry{display:flex;align-items:flex-end;gap:7px;flex-wrap:wrap}
+.control-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .additional{display:flex;flex-direction:column;gap:3px}
+.additional-help{font-size:10px;line-height:1.3;color:#666;max-width:300px}
 .additional label,.convert-row label{font-size:12px;font-weight:600}
 input{min-width:0;border:1px solid #aaa;border-radius:6px;background:#fff;color:#222;font:600 15px Arial,sans-serif;font-variant-numeric:tabular-nums;padding:5px 7px;height:30px}
 #alternateTime{width:158px}
 button{font:inherit;font-size:12px;padding:6px 9px;border:1px solid #999;border-radius:5px;background:#fff;color:#222;cursor:pointer;white-space:nowrap}
 button:hover{background:#f2f2f2}
 button:focus-visible,input:focus-visible{outline:2px solid #286ac7;outline-offset:2px}
-.converter{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5px 8px;color:#222}
-.convert-row{min-width:0;display:grid;grid-template-columns:1fr;gap:3px}
-.convert-row input{width:100%;font-size:15px}
+.converter{min-width:0;width:260px;max-width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:7px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px;color:#222;justify-self:end}
+.convert-row{min-width:0;width:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:3px}
+.convert-row input{width:100%;min-width:0;max-width:100%;font-size:13px}
+.convert-row label{font-size:11px;white-space:nowrap}
 .convert-result{font-size:12px;color:#666;font-variant-numeric:tabular-nums;padding-top:1px;min-height:15px}
 .status{font-size:11px;color:#8b3025;min-height:13px;margin-top:1px}
-.readout{width:min(94vw,850px);text-align:center;margin:1px auto 3px;color:#333}
+.readout{width:min(94vw,850px);text-align:center;margin:76px auto 3px;color:#333}
 #reverseDisplay{font-variant-numeric:tabular-nums;font-size:clamp(22px,3.2vw,30px);letter-spacing:.055em}
 #description{margin-top:2px;font-size:12px;color:#666}
-.clock-layout{width:min(96vw,1200px);display:grid;grid-template-columns:170px minmax(0,1fr) 165px;gap:16px;align-items:center;justify-content:center;flex:1}
-.equivalent-times{display:flex;flex-direction:column;gap:13px;align-self:center;color:#333;font-variant-numeric:tabular-nums}
+.clock-layout{position:relative;width:min(96vw,1200px);display:flex;justify-content:center;align-items:flex-start;flex:0 0 auto}
+.equivalent-times{position:absolute;left:0;top:44%;display:flex;flex-direction:column;gap:13px;color:#333;font-variant-numeric:tabular-nums}
 .time-block{display:flex;flex-direction:column;gap:3px}
 .time-block.secondary{margin-top:1px}
 .time-label{font-size:11px;color:#666;line-height:1.2}
 .time-value{font-size:20px;letter-spacing:.015em;white-space:nowrap}
 .time-block:first-child .time-value{font-size:23px}
-.dial-wrap{width:min(82vh,850px,calc(100vw - 390px));min-width:0;aspect-ratio:1;justify-self:center}
+.dial-wrap{width:min(94vw,calc(100vh - 155px),850px);min-width:0;aspect-ratio:1;flex:none}
 #clock{display:block;width:100%;height:100%;overflow:visible}
-.legend{align-self:end;justify-self:end;width:100%;padding-bottom:7px;color:#555;font-size:10px;line-height:1.35}
+.legend{position:absolute;right:0;bottom:0;width:165px;padding-bottom:7px;color:#555;font-size:10px;line-height:1.35}
 .legend-title{font-size:11px;font-weight:600;margin-bottom:5px;color:#444}
 .legend-row{display:grid;grid-template-columns:10px 10px 1fr;gap:4px;align-items:center;margin:2px 0}
 .swatch{width:9px;height:9px;border-radius:50%;border:1px solid #999}
@@ -50,22 +55,24 @@ button:focus-visible,input:focus-visible{outline:2px solid #286ac7;outline-offse
 .legend-cardinals span{white-space:nowrap}
 @media(max-width:850px){
  body{padding:8px 5px 12px}
- .topbar{width:96vw;grid-template-columns:minmax(0,1fr);gap:7px;margin-bottom:1px}
+ .topbar{position:static;transform:none;width:96vw;grid-template-columns:minmax(0,1fr);gap:7px;margin-bottom:1px}
  .toolbar{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:5px 8px}
  .brand{grid-column:1/-1}
- .controls{grid-column:1/-1;align-items:flex-end}
+ .controls{grid-column:1/-1;align-items:flex-start}
  #alternateTime{width:min(42vw,175px)}
- .converter{gap:4px 8px}
+ .converter{width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 8px;justify-self:stretch}
+ .convert-row{width:100%}
+ .convert-row input{width:100%;font-size:16px}
  .convert-row label{font-size:11px}
  .convert-row input{font-size:16px;padding:5px 6px}
  .readout{width:96vw;margin:1px auto 4px}
  .clock-layout{width:96vw;display:flex;flex-direction:column;gap:5px;flex:0 0 auto}
- .equivalent-times{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;order:0}
+ .equivalent-times{position:static;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;order:0}
  .time-block{gap:2px;min-width:0}
  .time-label{font-size:9px}
  .time-value,.time-block:first-child .time-value{font-size:clamp(13px,3.8vw,18px);letter-spacing:0}
  .dial-wrap{order:1;width:min(96vw,72vh);min-width:0}
- .legend{order:2;width:100%;padding:4px 2px 0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:start}
+ .legend{position:static;order:2;width:100%;padding:4px 2px 0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:start}
  .legend-title{margin:0}
  .legend-rows{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px 5px}
  .legend-row{grid-template-columns:8px 8px 1fr;gap:2px;font-size:9px}
@@ -81,21 +88,26 @@ button:focus-visible,input:focus-visible{outline:2px solid #286ac7;outline-offse
 <body>
 <header class="topbar">
   <div class="toolbar">
-    <div class="brand">Ron Rude Retrograde Decimal Clock</div>
+    <div class="brand">The Retrograde Decimal Clock<small>© Ron Rude 2026</small></div>
     <div class="controls">
-      <div class="additional">
-        <label for="alternateTime">Set Additional Time</label>
-        <input id="alternateTime" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="N24.099">
+      <div class="control-entry">
+        <div class="additional">
+          <label for="alternateTime">Set Additional Time</label>
+          <input id="alternateTime" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="N24.099">
+        </div>
+        <button id="setAlternate" type="button">Set</button>
       </div>
-      <button id="setAlternate" type="button">Set</button>
-      <button id="returnLocal" type="button">Local time</button>
-      <button id="hideNumerals" type="button" aria-pressed="false">Hide numerals</button>
+      <div class="additional-help">Including the endpoint notation (e.g. “-CE”) is optional.</div>
+      <div class="control-actions">
+        <button id="returnLocal" type="button">Local time</button>
+        <button id="hideNumerals" type="button" aria-pressed="false">Hide numerals</button>
+      </div>
     </div>
     <div class="status" id="timeStatus" aria-live="polite"></div>
   </div>
   <section class="converter" aria-label="Time converters">
     <div class="convert-row">
-      <label for="reverseInput">Retrograde Decimal Time</label>
+      <label for="reverseInput">Retrograde Time</label>
       <input id="reverseInput" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="N13.763">
       <div class="convert-result">Traditional: <strong id="traditionalResult" aria-live="polite"></strong></div>
     </div>
@@ -131,9 +143,9 @@ button:focus-visible,input:focus-visible{outline:2px solid #286ac7;outline-offse
   <div class="dial-wrap">
     <svg id="clock" viewBox="0 0 600 600" role="img" aria-label="Retrograde decimal clock with 100 minute and second divisions and 25 quartol-hour divisions">
       <text id="cardinalPair" x="300" y="13" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#202020">CM-CD</text>
-      <circle cx="300" cy="300" r="282" fill="#6479bd" stroke="#1d347d" stroke-width="2"/>
+      <circle id="outerRing" cx="300" cy="300" r="282" fill="#549f24" stroke="#242424" stroke-width="1.2"/>
       <g id="outerTicks"></g>
-      <circle cx="300" cy="300" r="244" fill="#80649f" stroke="#4c356d" stroke-width="1.5"/>
+      <circle id="innerRing" cx="300" cy="300" r="266" fill="#549f24" stroke="#242424" stroke-width="0.8"/>
       <g id="hourTicks"></g>
       <path id="completedFace" fill="#000000"/>
       <path id="remainderFace" fill="#c3c3c3"/>
@@ -186,11 +198,11 @@ function tick(group,deg,r1,r2,color,width){
 }
 for(let i=0;i<100;i++){
  const major=i%10===0;
- tick($("outerTicks"),i*3.6,major?267:272,280,"#1d347d",major?4.2:1.35);
+ tick($("outerTicks"),i*3.6,major?270:275,281,"#222",major?2.8:1.05);
 }
 for(let i=0;i<25;i++){
  const major=i%5===0;
- tick($("hourTicks"),i*14.4,major?231:235,243,"#4c356d",major?4.5:1.6);
+ tick($("hourTicks"),i*14.4,major?254:258,265,"#222",major?2.7:1.05);
 }
 function addNumeral(text,r,deg,size){
  const p=polar(r,deg),t=document.createElementNS(NS,"text");
@@ -199,11 +211,11 @@ function addNumeral(text,r,deg,size){
  t.setAttribute("transform",`translate(${p[0]} ${p[1]}) rotate(${rotation})`);
  t.setAttribute("x",0);t.setAttribute("y",size*.32);t.setAttribute("text-anchor","middle");
  t.setAttribute("font-size",size);t.setAttribute("font-family","Arial,Helvetica,sans-serif");
- t.setAttribute("font-weight","700");t.setAttribute("fill","#ffd34d");t.textContent=text;
+ t.setAttribute("font-weight","700");t.setAttribute("fill","#fff6cd");t.setAttribute("stroke","#3a3020");t.setAttribute("stroke-width","0.25");t.setAttribute("paint-order","stroke");t.textContent=text;
  $("numerals").appendChild(t);
 }
-for(let i=0;i<10;i++)addNumeral(`${i}|${pad2(i*10)}`,253,i*36,17);
-for(let i=0;i<5;i++)addNumeral(String(i*5),220,i*72,17);
+for(let i=0;i<10;i++)addNumeral(`${i}|${pad2(i*10)}`,274,i*36,11);
+for(let i=0;i<5;i++)addNumeral(String(i*5),257,i*72,11);
 
 function sectorPath(r,start,end){
  const span=end-start;
@@ -280,18 +292,20 @@ function draw(units,conventionalMs){
  const minuteAngle=(((remaining%1000)+1000)%1000)/1000*360;
  const secondAngle=(remaining%100)/100*360;
  $("cardinalPair").textContent=`${q.startCode}-${q.endCode}`;
+ $("outerRing").setAttribute("fill",q.face);
+ $("innerRing").setAttribute("fill",q.face);
  $("completedFace").setAttribute("fill",q.face);
- $("completedFace").setAttribute("d",sectorPath(216,hourAngle,360));
+ $("completedFace").setAttribute("d",sectorPath(250,hourAngle,360));
  $("remainderFace").setAttribute("fill",q.remainder);
- $("remainderFace").setAttribute("d",sectorPath(216,0,hourAngle));
- setHand("hourHand",139,hourAngle,q.hand,10);
- setHand("minuteHand",278,minuteAngle,q.hand,5.5);
- setHand("secondHand",250,secondAngle,q.second,2.5);
+ $("remainderFace").setAttribute("d",sectorPath(250,0,hourAngle));
+ setHand("hourHand",150,hourAngle,q.hand,10);
+ setHand("minuteHand",280,minuteAngle,q.hand,5.5);
+ setHand("secondHand",270,secondAngle,q.second,2.5);
  $("hands").querySelector("circle").setAttribute("fill",q.hand);
  $("reverseDisplay").textContent=reverseText(q,remaining);
  $("description").textContent=`${q.name} · ${p.h} hours, ${p.m} minutes and ${pad2(p.s)} seconds remaining until ${q.end}`;
  equivalentTimes(conventionalMs);
- document.title=`${reverseText(q,remaining)} · Ron Rude Retrograde Decimal Clock`;
+ document.title=`${reverseText(q,remaining)} · The Retrograde Decimal Clock`;
 }
 
 // Live local time by default. An alternate time is a running anchor, not a frozen value.
