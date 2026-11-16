@@ -3,7 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ron Rude Retrograde Decimal Clock — Responsive Mobile V37</title>
+<title>The Ron Rude 3D Clock — Retrograde Decimal Quartol Timekeeping</title>
+<meta name="description" content="The Ron Rude 3D Clock: 100 hours per day, 25 hours per quartol, 10 minutes per hour, and 100 seconds per minute. A three-plane retrograde decimal clock showing time remaining until the next cardinal event.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Ron Rude 3D Clock">
+<meta property="og:description" content="3D Retrograde Decimal Quartol Based Timekeeping — 100 hours/day · 25 hours/quartol · 10 minutes/hour · 100 seconds/minute.">
+<meta property="og:url" content="https://ron-rude.github.io/3d-retrograde/">
+<meta property="og:image" content="https://ron-rude.github.io/3d-retrograde/3d_retrograde_clock_preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Ron Rude 3D Clock with a glass sphere and its decimal timekeeping divisions">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Ron Rude 3D Clock">
+<meta name="twitter:description" content="3D Retrograde Decimal Quartol Based Timekeeping">
+<meta name="twitter:image" content="https://ron-rude.github.io/3d-retrograde/3d_retrograde_clock_preview.png">
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
@@ -75,16 +88,19 @@
 <div id="stage"></div>
 <div id="caption"><strong>The Ron Rude 3D Clock</strong><span>3D Retrograde Decimal Quartol Based Timekeeping</span></div>
 <div id="help">Drag to rotate · scroll to zoom</div>
-<div id="legend" style="position:absolute;right:22px;top:18px;z-index:2;color:#a6ff70;font:12px/1.65 system-ui,sans-serif;text-align:left;pointer-events:none;background:rgba(8,18,10,.86);padding:9px 12px;border-radius:8px;max-width:285px">
+<div id="legend" style="position:absolute;right:22px;top:18px;z-index:2;color:#a6ff70;font:12px/1.65 system-ui,sans-serif;text-align:left;pointer-events:none;background:rgba(8,18,10,.86);padding:9px 12px;border-radius:8px;max-width:315px">
   <div style="font-weight:650">Quartols · sphere</div>
   <div><span style="color:#29cd16">●</span> Night · Green</div>
   <div><span style="color:#1e6bc5">●</span> Morning · Blue</div>
   <div><span style="color:#c91f1a">●</span> Afternoon · Red</div>
   <div><span style="color:#fcd014">●</span> Evening · Yellow ochre</div>
   <div style="font-weight:650;margin-top:5px">Planes and remaining time</div>
-  <div><span style="color:#4809e2">●</span> Coronal · Purple</div>
-  <div><span style="color:#01938c">●</span> Sagittal · Turquoise</div>
-  <div><span style="color:#ff7001">●</span> Transverse · Tan</div>
+  <div><span style="color:#4809e2">●</span> Coronal · Purple · 25 hours/quartol</div>
+  <div style="padding-left:16px;line-height:1.35;opacity:.9">Frontal plane, parallel to the screen at the starting orientation</div>
+  <div style="margin-top:5px"><span style="color:#01938c">●</span> Sagittal · Turquoise · 10 minutes/hour</div>
+  <div style="padding-left:16px;line-height:1.35;opacity:.9">Vertical plane, front to back</div>
+  <div style="margin-top:5px"><span style="color:#ff7001">●</span> Transverse · Tan · 100 seconds/minute</div>
+  <div style="padding-left:16px;line-height:1.35;opacity:.9">Horizontal plane</div>
   <div><span id="remainingLegendDot" style="color:#29cd16">●</span> Time remaining · Same colour as quartol</div>
   <div style="font-weight:650;margin-top:5px">Hands</div>
   <div><span style="color:#b36aff">●</span> Hour · Bright purple (Coronal)</div>
@@ -433,9 +449,11 @@ try {
   function makeRemainingSector(group,color){
     const material=new THREE.MeshBasicMaterial({
       color,transparent:true,opacity:0.37,
-      side:THREE.DoubleSide,depthTest:false,depthWrite:false
+      side:THREE.DoubleSide,depthTest:true,depthWrite:true
     });
     const mesh=new THREE.Mesh(new THREE.BufferGeometry(),material);
+    // Keep the sectors in the depth buffer so the intersecting planes
+    // cannot blend their far-side wedges over nearer geometry.
     mesh.position.z=0.022;
     mesh.renderOrder=24;
     group.add(mesh);
@@ -521,15 +539,15 @@ try {
   const hub = new THREE.Mesh(
     new THREE.SphereGeometry(0.19, 64, 48),
     new THREE.MeshStandardMaterial({
-      color:0xb9c2cc, metalness:0.96, roughness:0.17,
-      envMapIntensity:1.8
+      color:0xb9c2cc, metalness:0.88, roughness:0.29,
+      envMapIntensity:1.05
     })
   );
   // Opaque bearing participates in the same depth buffer as all three hands.
   // It conceals only the hand sections that are physically behind its surface.
   hub.material.depthTest = true;
   hub.material.depthWrite = true;
-  hub.renderOrder = 56;
+  hub.renderOrder = 55;
   globeGroup.add(hub);
 
   // Approved optical reference: retain the original glass sphere and
