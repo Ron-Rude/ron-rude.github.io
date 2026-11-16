@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ron Rude Retrograde Decimal Clock — Dark Background Test V35</title>
+<title>Ron Rude Retrograde Decimal Clock — Responsive Mobile V36</title>
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
@@ -31,6 +31,30 @@
   }
   #alternateTime::placeholder { color:#81b97a; opacity:1; }
   button:focus-visible, input:focus-visible { outline:2px solid #a6ff70; outline-offset:2px; }
+
+  /* Compact portrait layout: preserve the desktop composition above 700px. */
+  @media (max-width:700px) {
+    html, body { height:auto; min-height:100%; overflow-x:hidden; overflow-y:auto; }
+    body { display:flex; flex-direction:column; align-items:stretch; padding:0 12px 22px; }
+    #caption { order:1; position:relative; left:auto; top:auto; padding:18px 2px 14px; }
+    #caption strong { font-size:19px; }
+    #caption span { font-size:11px; }
+    #clockPanel { order:2; position:relative!important; left:auto!important; top:auto!important;
+      width:100%; max-width:none!important; padding:12px 14px!important; font-size:13px!important; }
+    #clockReadout { line-height:1.45; }
+    #stage { order:3; position:relative; inset:auto; width:100%; height:auto;
+      aspect-ratio:1/1; min-height:0; touch-action:none; flex:none; margin:12px 0 6px; }
+    #stage canvas { width:100%!important; height:100%!important; touch-action:none; }
+    #toggleNumerals, #resetOrientation { position:relative!important; left:auto!important; bottom:auto!important;
+      align-self:flex-start; margin:5px 0; }
+    #toggleNumerals { order:4; }
+    #resetOrientation { order:5; }
+    #help { order:6; position:relative; left:auto; bottom:auto; padding:5px 2px 12px; }
+    #legend { order:7; position:relative!important; top:auto!important; right:auto!important;
+      max-width:none!important; width:100%; margin-top:5px; font-size:12px!important;
+      border:1px solid #29482c; }
+    #error { position:fixed; }
+  }
 </style>
 <script type="importmap">
 {
@@ -98,12 +122,14 @@ try {
   // View elevation ~10 degrees and azimuth ~12 degrees reveal the transverse
   // and sagittal planes without making the coronal plane perfectly face-on.
   const viewHeight = 4.75;
-  const camera = new THREE.OrthographicCamera(-viewHeight*innerWidth/innerHeight/2, viewHeight*innerWidth/innerHeight/2, viewHeight/2, -viewHeight/2, 0.1, 100);
+  const stageSize = () => ({width:host.clientWidth || innerWidth, height:host.clientHeight || innerHeight});
+  const initialSize = stageSize();
+  const camera = new THREE.OrthographicCamera(-viewHeight*initialSize.width/initialSize.height/2, viewHeight*initialSize.width/initialSize.height/2, viewHeight/2, -viewHeight/2, 0.1, 100);
   camera.position.set(1.90, 1.632, 9.06);
 
   const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setSize(innerWidth, innerHeight);
+  renderer.setSize(initialSize.width, initialSize.height);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.15;
@@ -622,15 +648,17 @@ try {
   });
 
   function resize() {
-    const aspect = innerWidth / innerHeight;
+    const dimensions = stageSize();
+    const aspect = dimensions.width / dimensions.height;
     camera.left = -viewHeight * aspect / 2;
     camera.right = viewHeight * aspect / 2;
     camera.top = viewHeight / 2;
     camera.bottom = -viewHeight / 2;
     camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
+    renderer.setSize(dimensions.width, dimensions.height);
   }
   window.addEventListener('resize', resize);
+  if (typeof ResizeObserver !== "undefined") new ResizeObserver(resize).observe(host);
 
   renderer.setAnimationLoop(() => {
     controls.update();
