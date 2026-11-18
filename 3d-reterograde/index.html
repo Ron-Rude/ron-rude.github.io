@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Ron Rude 3D Clock — Retrograde Decimal Quartol Timekeeping</title>
-<meta name="description" content="The Ron Rude 3D Clock: 100 hours per day, 25 hours per quartol, 10 minutes per hour, and 100 seconds per minute. A three-plane retrograde decimal clock showing time remaining until the next cardinal event.">
+<title>The Axonometric Decimal Clock</title>
+<meta name="description" content="The Axonometric Decimal Clock: a spherical, reverse-motion clock. 100 centares/day, 25 centares/quartol, 10 decols/centare and 100 pulsites/decol.">
 <meta property="og:type" content="website">
-<meta property="og:title" content="The Ron Rude 3D Clock">
-<meta property="og:description" content="3D Retrograde Decimal Quartol Based Timekeeping — 100 hours/day · 25 hours/quartol · 10 minutes/hour · 100 seconds/minute.">
+<meta property="og:title" content="The Axonometric Decimal Clock">
+<meta property="og:description" content="A spherical, reverse-motion clock · 100 centares/day · 25 centares/quartol · 10 decols/centare · 100 pulsites/decol.">
 <meta property="og:url" content="https://ron-rude.github.io/3d-retrograde/">
-<meta property="og:image" content="https://ron-rude.github.io/3d-retrograde/3d_retrograde_clock_preview.png">
+<meta property="og:image" content="https://ron-rude.github.io/3d-retrograde/axonometric_clock_preview.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The Ron Rude 3D Clock with a glass sphere and its decimal timekeeping divisions">
+<meta property="og:image:alt" content="The Axonometric Decimal Clock, a spherical reverse-motion decimal clock">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="The Ron Rude 3D Clock">
-<meta name="twitter:description" content="3D Retrograde Decimal Quartol Based Timekeeping">
-<meta name="twitter:image" content="https://ron-rude.github.io/3d-retrograde/3d_retrograde_clock_preview.png">
+<meta name="twitter:title" content="The Axonometric Decimal Clock">
+<meta name="twitter:description" content="A spherical, reverse-motion clock">
+<meta name="twitter:image" content="https://ron-rude.github.io/3d-retrograde/axonometric_clock_preview.png">
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
@@ -74,6 +74,9 @@
       border:1px solid #29482c; }
     #error { position:fixed; }
   }
+#caption { max-width: min(600px, 92vw); }
+#caption .clock-credit, #caption .clock-units { display:block; font-size:11px; line-height:1.4; margin-top:2px; }
+@media (max-width: 700px) { #caption .clock-credit, #caption .clock-units { font-size:10px; } }
 </style>
 <script type="importmap">
 {
@@ -86,7 +89,7 @@
 </head>
 <body>
 <div id="stage"></div>
-<div id="caption"><strong>The Ron Rude 3D Clock</strong><span>3D Retrograde Decimal Quartol Based Timekeeping</span></div>
+<div id="caption"><strong>The Axonometric Decimal Clock</strong><span>A spherical, reverse-motion clock</span><span class="clock-credit">© Ron Rude 2026</span><span class="clock-units">100 centares/day · 25 centares/quartol · 10 decols/centare · 100 pulsites/decol</span><span class="clock-units">Centares, decols and pulsites replace traditional hours, minutes and seconds.</span></div>
 <div id="help">Drag to rotate · scroll to zoom</div>
 <div id="legend" style="position:absolute;right:22px;top:18px;z-index:2;color:#a6ff70;font:12px/1.65 system-ui,sans-serif;text-align:left;pointer-events:none;background:rgba(8,18,10,.86);padding:9px 12px;border-radius:8px;max-width:315px">
   <div style="font-weight:650">Quartols · sphere</div>
@@ -94,18 +97,19 @@
   <div><span style="color:#1e6bc5">●</span> Morning · Blue</div>
   <div><span style="color:#c91f1a">●</span> Afternoon · Red</div>
   <div><span style="color:#fcd014">●</span> Evening · Yellow ochre</div>
-  <div style="font-weight:650;margin-top:5px">Planes and remaining time</div>
-  <div><span style="color:#4809e2">●</span> Coronal · Purple · 25 hours/quartol</div>
+  <div style="font-weight:650;margin-top:5px">Planes, units and remaining time</div>
+  <div style="line-height:1.35;opacity:.9">Centares = hours · decols = minutes · pulsites = seconds (decimal divisions)</div>
+  <div><span style="color:#4809e2">●</span> Coronal · Purple · 25 centares/quartol</div>
   <div style="padding-left:16px;line-height:1.35;opacity:.9">Frontal plane, parallel to the screen at the starting orientation</div>
-  <div style="margin-top:5px"><span style="color:#01938c">●</span> Sagittal · Turquoise · 10 minutes/hour</div>
+  <div style="margin-top:5px"><span style="color:#01938c">●</span> Sagittal · Turquoise · 10 decols/centare</div>
   <div style="padding-left:16px;line-height:1.35;opacity:.9">Vertical plane, front to back</div>
-  <div style="margin-top:5px"><span style="color:#ff7001">●</span> Transverse · Tan · 100 seconds/minute</div>
+  <div style="margin-top:5px"><span style="color:#ff7001">●</span> Transverse · Tan · 100 pulsites/decol</div>
   <div style="padding-left:16px;line-height:1.35;opacity:.9">Horizontal plane</div>
   <div><span id="remainingLegendDot" style="color:#29cd16">●</span> Time remaining · Same colour as quartol</div>
-  <div style="font-weight:650;margin-top:5px">Hands</div>
-  <div><span style="color:#b36aff">●</span> Hour · Bright purple (Coronal)</div>
-  <div><span style="color:#01938c">●</span> Minute · Turquoise (Sagittal)</div>
-  <div><span style="color:#ff7001">●</span> Second · Tan (Transverse)</div>
+  <div style="font-weight:650;margin-top:5px">Hands · decimal units</div>
+  <div><span style="color:#b36aff">●</span> Centare · Bright purple (Coronal)</div>
+  <div><span style="color:#01938c">●</span> Decol · Turquoise (Sagittal)</div>
+  <div><span style="color:#ff7001">●</span> Pulsite · Tan (Transverse)</div>
   <div style="font-weight:650;margin-top:10px">Cardinal (C) Beginning and End Points:</div>
   <div>Night: C. Midnight to C. Dawn</div>
   <div>Morning: C. Dawn - C. Noon</div>
@@ -116,8 +120,8 @@
   <div id="clockReadout" style="display:flex;flex-direction:column;gap:3px"><strong>Loading clock…</strong></div>
   <div id="secondaryPanel">
   <div id="secondaryReadout" style="display:flex;flex-direction:column;gap:3px"></div>
-  <div style="margin-top:12px;font-size:12px">Alternate retrograde time</div>
-  <input id="alternateTime" value="" placeholder="Nhh.mss" aria-label="Alternate retrograde time" style="width:100%;padding:7px;border:1px solid #5ba94c;border-radius:6px;background:#071308;color:#a6ff70">
+  <div style="margin-top:12px;font-size:12px">Alternate axonometric time</div>
+  <input id="alternateTime" value="" placeholder="Nhh.mss" aria-label="Alternate axonometric time" style="width:100%;padding:7px;border:1px solid #5ba94c;border-radius:6px;background:#071308;color:#a6ff70">
   <div style="display:flex;gap:6px;margin-top:8px"><button type="button" id="setAlternate" style="padding:8px 10px;background:#17321b!important;color:#a6ff70!important;border:1px solid #5ba94c!important;font-size:13px!important;font-weight:700!important;opacity:1!important">Run alternate</button><button type="button" id="returnLocal" style="padding:8px 10px;background:#17321b!important;color:#a6ff70!important;border:1px solid #5ba94c!important;font-size:13px!important;font-weight:700!important;opacity:1!important">Local time</button></div>
   <div id="timeStatus" style="font-size:11px;min-height:18px"></div>
   </div>
@@ -341,11 +345,11 @@ try {
   // Exact mutually orthogonal world planes: XY, YZ and XZ.
   // Camera obliquity alone makes the sagittal plane visible.
   // Plane normals: coronal +Z, sagittal +X, transverse +Y.
-  const coronal = makePlane("Coronal plane · 25 hours", 0x4809e2, [0, 0, 0], 25, 5);
+  const coronal = makePlane("Coronal plane · 25 centares", 0x4809e2, [0, 0, 0], 25, 5);
   // Pure yaw preserves the sagittal plane's north pole exactly at the
   // same 3D zenith as the coronal plane's zero-hour marker.
-  const sagittal = makePlane("Sagittal plane · 10 minutes", 0x01938c, [0, Math.PI/2, 0], 10, 1);
-  const transverse = makePlane("Transverse plane · 100 seconds", 0xff7001, [-Math.PI/2, 0, 0], 100, 10);
+  const sagittal = makePlane("Sagittal plane · 10 decols", 0x01938c, [0, Math.PI/2, 0], 10, 1);
+  const transverse = makePlane("Transverse plane · 100 pulsites", 0xff7001, [-Math.PI/2, 0, 0], 100, 10);
 
 
   let numeralsHidden=false;
@@ -388,7 +392,7 @@ try {
     if(!m)throw Error("Enter Qhh.mss, e.g. A24.099-CE.");
     const idx=quartols.findIndex(q=>q.id===m[1]),q=quartols[idx];
     const h=Number(m[2]),mi=Number(m[3]),sec=Number(m[4]);
-    if(h>25||(h===25&&(mi!==0||sec!==0)))throw Error("Hours must be 00–25; 25 only as 25.000.");
+    if(h>25||(h===25&&(mi!==0||sec!==0)))throw Error("Centares must be 00–25; 25 only as 25.000.");
     if(m[5]&&m[5]!==q.endCode[1])throw Error(`Suffix must be -${q.endCode}.`);
     return ((idx*25000)+(25000-(h*1000+mi*100+sec)))%DAY_UNITS;
   }
@@ -517,7 +521,7 @@ try {
     updateRemainingSector(remainingSectors[2],(remaining%100)/100);
     const conventional=sexagesimal(ms);
     const remainingParts=parts(remaining);
-    const expanded=`${q.name} ${remainingParts.h} hours, ${remainingParts.m} minutes and ${pad2(remainingParts.s)} seconds remaining until ${q.end}`;
+    const expanded=`${q.name} ${remainingParts.h} centares, ${remainingParts.m} decols and ${pad2(remainingParts.s)} pulsites remaining until ${q.end}`;
     readout.innerHTML=`<strong style="color:${notationColors[idx]};font-size:22px">${reverseText(q,remaining)}</strong><span style="line-height:1.4;margin:5px 0 7px">${expanded}</span>`;
     document.getElementById("secondaryReadout").innerHTML=`<span>Anterograde: ${decimalFromConventionalMs(ms)}</span><span>24-hour: ${conventional.full}</span><span>12-hour: ${conventional.twelve}</span>`;
   }
