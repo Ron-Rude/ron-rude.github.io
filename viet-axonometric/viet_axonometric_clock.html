@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đồng hồ trục đo thập phân</title>
+<meta name="description" content="Đồng hồ trục đo thập phân: đồng hồ hình cầu, chuyển động ngược. 100 cếntox/ngày, 25 cếntox/phần tư, 10 đánh dấu dài/cếntox và 100 nhịp đập/đánh dấu dài.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Đồng hồ trục đo thập phân">
+<meta property="og:description" content="Đồng hồ hình cầu, chuyển động ngược · 100 cếntox/ngày · 25 cếntox/phần tư · 10 đánh dấu dài/cếntox · 100 nhịp đập/đánh dấu dài.">
+<meta property="og:url" content="https://ron-rude.github.io/viet-axonometric/">
+<meta property="og:image" content="https://ron-rude.github.io/viet-axonometric/viet_axonometric_link_preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Đồng hồ trục đo thập phân, đồng hồ thập phân hình cầu chuyển động ngược">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Đồng hồ trục đo thập phân">
+<meta name="twitter:description" content="Đồng hồ hình cầu, chuyển động ngược">
+<meta name="twitter:image" content="https://ron-rude.github.io/viet-axonometric/viet_axonometric_link_preview.png">
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#000000; }
+  body { font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#a6ff70; }
+  #stage { position:absolute; inset:0; }
+  canvas { display:block; width:100%; height:100%; }
+  #caption {
+    position:absolute; left:22px; top:18px; z-index:2; pointer-events:none;
+    color:#a6ff70; font-size:12px; letter-spacing:.11em;
+    text-transform:uppercase;
+  }
+  #caption strong {display:block;font-size:19px;letter-spacing:0;text-transform:none;color:#a6ff70}
+  #caption span {display:block;font-size:12px;letter-spacing:.02em;text-transform:none;color:#a6ff70}
+  #clockPanel button {appearance:none;background:#18301a;color:#a6ff70;border:1px solid #6bbf5a;border-radius:6px;font:600 12px system-ui;cursor:pointer;white-space:nowrap;}
+  #clockPanel button:hover {background:#264c29}
+  #help {
+    position:absolute; left:22px; bottom:18px; z-index:2;
+    color:#a6ff70; font-size:12px; pointer-events:none;
+  }
+  #error {
+    display:none; position:absolute; inset:20px; z-index:5; padding:18px;
+    color:#fff; background:#541d25; border:1px solid #d77; border-radius:8px;
+    white-space:pre-wrap; overflow:auto;
+  }
+  #alternateTime::placeholder { color:#81b97a; opacity:1; }
+  button:focus-visible, input:focus-visible { outline:2px solid #a6ff70; outline-offset:2px; }
+
+  /* Compact portrait layout: preserve the desktop composition above 700px. */
+  @media (max-width:700px) {
+    html, body { height:auto; min-height:100%; overflow-x:hidden; overflow-y:auto; }
+    body { display:flex; flex-direction:column; align-items:stretch; padding:0 12px 22px; }
+    #caption { order:1; position:relative; left:auto; top:auto; padding:18px 2px 14px; }
+    #caption strong { font-size:19px; }
+    #caption span { font-size:11px; }
+    #clockPanel { display:contents; }
+    #clockReadout { order:2; position:relative; width:100%; padding:12px 14px;
+      border:1px solid #407b38; border-radius:12px; background:rgba(8,18,10,.88);
+      font-size:13px; line-height:1.45; }
+    #secondaryPanel { order:4; position:relative; width:100%; padding:12px 14px;
+      border:1px solid #407b38; border-radius:12px; background:rgba(8,18,10,.88);
+      font-size:13px; margin:8px 0 4px; }
+    #secondaryReadout { line-height:1.6; }
+    #secondaryPanel input { font-size:16px; }
+    #stage { order:3; position:relative; inset:auto; width:100%; height:auto;
+      aspect-ratio:1/1; min-height:0; touch-action:none; flex:none; margin:12px 0 6px; }
+    #stage canvas { width:100%!important; height:100%!important; touch-action:none; }
+    #toggleNumerals, #resetOrientation { position:relative!important; left:auto!important; bottom:auto!important;
+      align-self:flex-start; margin:5px 0; }
+    #toggleNumerals { order:5; }
+    #resetOrientation { order:6; }
+    #help { order:7; position:relative; left:auto; bottom:auto; padding:5px 2px 12px; }
+    #legend { overflow-wrap:anywhere; order:8; position:relative!important; top:auto!important; right:auto!important;
+      max-width:none!important; width:100%; margin-top:5px; font-size:12px!important;
+      border:1px solid #29482c; }
+    #error { position:fixed; }
+  }
+#caption { max-width: min(600px, 92vw); }
+#caption .clock-credit, #caption .clock-units { overflow-wrap:anywhere; display:block; font-size:11px; line-height:1.4; margin-top:2px; }
+@media (max-width: 700px) { #caption .clock-credit, #caption .clock-units { font-size:10px; } }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<div id="caption"><strong>Đồng hồ trục đo thập phân</strong><span>Đồng hồ hình cầu, chuyển động ngược</span><span class="clock-credit">© Ron Rude 2026</span><span class="clock-units">100 cếntox/ngày · 25 cếntox/phần tư · 10 đánh dấu dài/cếntox · 100 nhịp đập/đánh dấu dài</span><span class="clock-units">Cếntox, đánh dấu dài và nhịp đập thay thế giờ, phút và giây truyền thống.</span></div>
+<div id="help">Kéo để xoay · cuộn để phóng to/thu nhỏ</div>
+<div id="legend" style="position:absolute;right:22px;top:18px;z-index:2;color:#a6ff70;font:12px/1.65 system-ui,sans-serif;text-align:left;pointer-events:none;background:rgba(8,18,10,.86);padding:9px 12px;border-radius:8px;max-width:315px">
+  <div style="font-weight:650">Các phần tư · hình cầu</div>
+  <div><span style="color:#29cd16">●</span> Đêm · Xanh lá</div>
+  <div><span style="color:#1e6bc5">●</span> Buổi sáng · Xanh lam</div>
+  <div><span style="color:#c91f1a">●</span> Buổi chiều · Đỏ</div>
+  <div><span style="color:#fcd014">●</span> Buổi tối · Vàng đất</div>
+  <div style="font-weight:650;margin-top:5px">Các mặt phẳng, đơn vị và thời gian còn lại</div>
+  <div style="line-height:1.35;opacity:.9">Cếntox = giờ · đánh dấu dài = phút · nhịp đập = giây (theo hệ thập phân)</div>
+  <div><span style="color:#4809e2">●</span> Mặt phẳng trán · Tím · 25 cếntox/phần tư</div>
+  <div style="padding-left:16px;line-height:1.35;opacity:.9">Mặt phẳng phía trước, song song màn hình ở vị trí ban đầu</div>
+  <div style="margin-top:5px"><span style="color:#01938c">●</span> Mặt phẳng dọc · Xanh ngọc · 10 đánh dấu dài/cếntox</div>
+  <div style="padding-left:16px;line-height:1.35;opacity:.9">Mặt phẳng thẳng đứng, từ trước ra sau</div>
+  <div style="margin-top:5px"><span style="color:#ff7001">●</span> Mặt phẳng ngang · Cam đất · 100 nhịp đập/đánh dấu dài</div>
+  <div style="padding-left:16px;line-height:1.35;opacity:.9">Mặt phẳng nằm ngang</div>
+  <div><span id="remainingLegendDot" style="color:#29cd16">●</span> Thời gian còn lại · Cùng màu với phần tư</div>
+  <div style="font-weight:650;margin-top:5px">Các kim · đơn vị thập phân</div>
+  <div><span style="color:#b36aff">●</span> Cếntox · Tím sáng (mặt phẳng trán)</div>
+  <div><span style="color:#01938c">●</span> Đánh dấu dài · Xanh ngọc (mặt phẳng dọc)</div>
+  <div><span style="color:#ff7001">●</span> Nhịp đập · Cam đất (mặt phẳng ngang)</div>
+  <div style="font-weight:650;margin-top:10px">Các mốc chuyển phần tư (C):</div>
+  <div>Đêm: Nửa đêm đến Bình minh</div>
+  <div>Buổi sáng: Bình minh đến Chính trưa</div>
+  <div>Buổi chiều: Chính trưa đến Hoàng hôn</div>
+  <div>Buổi tối: Hoàng hôn đến Nửa đêm</div>
+</div>
+<div id="clockPanel" style="position:absolute;left:20px;top:110px;z-index:3;background:rgba(8,18,10,.88);border:1px solid #407b38;border-radius:12px;padding:14px 16px;color:#a6ff70;font:14px/1.7 system-ui,sans-serif;max-width:270px">
+  <div id="clockReadout" style="display:flex;flex-direction:column;gap:3px"><strong>Đang tải đồng hồ…</strong></div>
+  <div id="secondaryPanel">
+  <div id="secondaryReadout" style="display:flex;flex-direction:column;gap:3px"></div>
+  <div style="margin-top:12px;font-size:12px">Giờ trục đo thay thế</div>
+  <input id="alternateTime" value="" placeholder="Nhh.mss" aria-label="Giờ trục đo thay thế" style="width:100%;padding:7px;border:1px solid #5ba94c;border-radius:6px;background:#071308;color:#a6ff70">
+  <div style="display:flex;gap:6px;margin-top:8px"><button type="button" id="setAlternate" style="padding:8px 10px;background:#17321b!important;color:#a6ff70!important;border:1px solid #5ba94c!important;font-size:13px!important;font-weight:700!important;opacity:1!important">Chạy giờ thay thế</button><button type="button" id="returnLocal" style="padding:8px 10px;background:#17321b!important;color:#a6ff70!important;border:1px solid #5ba94c!important;font-size:13px!important;font-weight:700!important;opacity:1!important">Giờ địa phương</button></div>
+  <div id="timeStatus" style="font-size:11px;min-height:18px"></div>
+  </div>
+</div>
+<button id="toggleNumerals" type="button" aria-pressed="false" style="position:absolute;left:20px;bottom:88px;z-index:4;padding:9px 13px;border:1px solid #5ba94c;border-radius:7px;background:#17321b;color:#a6ff70;font:600 13px system-ui,sans-serif;cursor:pointer">Ẩn chữ số</button>
+<button id="resetOrientation" type="button" style="position:absolute;left:20px;bottom:44px;z-index:4;padding:9px 13px;border:1px solid #5ba94c;border-radius:7px;background:#17321b;color:#a6ff70;font:600 13px system-ui,sans-serif;cursor:pointer">Trở về góc nhìn ban đầu</button>
+<div id="error"></div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const errorBox = document.getElementById('error');
+function reportError(error) {
+  errorBox.style.display = 'block';
+  errorBox.textContent = 'Không thể khởi động đồng hồ:\\n' + (error?.stack || error?.message || String(error));
+  console.error(error);
+}
+window.addEventListener('error', e => reportError(e.error || e.message));
+window.addEventListener('unhandledrejection', e => reportError(e.reason));
+
+try {
+  const host = document.getElementById('stage');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+
+  // Orthographic projection keeps all three great circles concentric with the globe.
+  // View elevation ~10 degrees and azimuth ~12 degrees reveal the transverse
+  // and sagittal planes without making the coronal plane perfectly face-on.
+  const viewHeight = 4.75;
+  const stageSize = () => ({width:host.clientWidth || innerWidth, height:host.clientHeight || innerHeight});
+  const initialSize = stageSize();
+  const camera = new THREE.OrthographicCamera(-viewHeight*initialSize.width/initialSize.height/2, viewHeight*initialSize.width/initialSize.height/2, viewHeight/2, -viewHeight/2, 0.1, 100);
+  camera.position.set(1.90, 1.632, 9.06);
+
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(initialSize.width, initialSize.height);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+  host.appendChild(renderer.domElement);
+
+  // A deliberately simple dark studio with large rectangular softboxes.
+  // The equirectangular environment is converted to a PMREM for physically
+  // based reflections on the glass and chrome.
+  function makeStudioEnvironment() {
+    const w = 2048, h = 1024;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    const bg = ctx.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, '#29313b');
+    bg.addColorStop(.48, '#111820');
+    bg.addColorStop(1, '#303943');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    // Broad ambient studio panels.
+    function panel(x,y,pw,ph) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(225,238,255,.8)';
+      ctx.shadowBlur = 34;
+      ctx.fillStyle = '#eaf2ff';
+      ctx.fillRect(x,y,pw,ph);
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(35,48,63,.9)';
+      ctx.lineWidth = Math.max(8, pw*.035);
+      ctx.strokeRect(x,y,pw,ph);
+      ctx.beginPath();
+      ctx.moveTo(x+pw*.5,y); ctx.lineTo(x+pw*.5,y+ph);
+      ctx.moveTo(x,y+ph*.5); ctx.lineTo(x+pw,y+ph*.5);
+      ctx.stroke();
+      ctx.restore();
+    }
+    panel(250, 190, 230, 390);
+    panel(1330, 135, 310, 500);
+
+    // Narrow strip lights to create curved highlights around the shoulders.
+    ctx.save();
+    ctx.shadowColor = 'rgba(210,230,255,.8)';
+    ctx.shadowBlur = 24;
+    ctx.fillStyle = '#dce9fa';
+    ctx.fillRect(770, 90, 48, 520);
+    ctx.fillRect(1780, 320, 35, 390);
+    ctx.restore();
+
+    // A restrained floor bounce.
+    const floor = ctx.createLinearGradient(0, h*.72, 0, h);
+    floor.addColorStop(0, 'rgba(0,0,0,0)');
+    floor.addColorStop(1, 'rgba(180,198,220,.28)');
+    ctx.fillStyle = floor;
+    ctx.fillRect(0, h*.72, w, h*.28);
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  const studioTexture = makeStudioEnvironment();
+  const envRT = pmrem.fromEquirectangular(studioTexture);
+  scene.environment = envRT.texture;
+  scene.environmentIntensity = 1.0;
+  studioTexture.dispose();
+
+  // Soft studio fill; the environment map supplies the actual reflections.
+  scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+  // A single fixed studio key light: the triangular faces shade according
+  // to their actual world-space orientation as the hands rotate.
+  const handKeyLight=new THREE.DirectionalLight(0xffffff,1.65);
+  handKeyLight.position.set(-3.5,5.5,7);
+  scene.add(handKeyLight);
+
+
+  const globeGroup = new THREE.Group();
+  scene.add(globeGroup);
+
+  // Three mutually perpendicular graduated discs, all centred on the
+  // same origin: coronal XY, sagittal YZ, transverse XZ.
+  const R = 1.975; // identical radii for all planes, just within glass radius 2
+  function makePlane(name, color, rotation, divisions, majorEvery) {
+    const group = new THREE.Group();
+    group.name = name;
+    group.rotation.set(rotation[0], rotation[1], rotation[2]);
+    globeGroup.add(group);
+
+    // Saturated, translucent face. Basic material keeps the plane colour
+    // legible and independent of the studio lighting.
+    // Keep the frontal coronal face almost invisible; its purple ring and
+    // graduations remain legible. Other faces are subdued as well.
+    group.userData.planeOpacity = name.startsWith("Coronal") ? 0.035 :
+      (name.startsWith("Sagittal") ? 0.15 : 0.17);
+    const face = new THREE.Mesh(
+      new THREE.CircleGeometry(R, 192),
+      new THREE.MeshBasicMaterial({
+        color, transparent:true, opacity:group.userData.planeOpacity,
+        side:THREE.DoubleSide, depthWrite:false, depthTest:true
+      })
+    );
+    face.renderOrder = 20;
+    group.add(face);
+
+    // Fine outer and inner graduated rings.
+    function ring(radius, tube, opacity) {
+      const mesh = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, tube, 6, 240),
+        new THREE.MeshBasicMaterial({
+          color, transparent:true, opacity:0.94,
+          side:THREE.DoubleSide, depthWrite:false, depthTest:true
+        })
+      );
+      mesh.renderOrder = 21;
+      group.add(mesh);
+    }
+    ring(R, 0.015, 0.95);
+    ring(R * 0.78, 0.008, 0.75);
+
+    group.userData.numerals=[];
+    // White numeral sprites are legible from either side of each plane.
+    // The 100-second ring labels its ten major markers to avoid overcrowding.
+    function numeralSprite(value,scale){
+      const canvas=document.createElement("canvas");
+      canvas.width=128;canvas.height=128;
+      const ctx=canvas.getContext("2d");
+      ctx.font="bold 69px system-ui, sans-serif";
+      ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.lineWidth=10;ctx.strokeStyle="rgba(0,18,0,.98)";
+      ctx.strokeText(String(value),64,66);
+      ctx.fillStyle="#a6ff70";ctx.fillText(String(value),64,66);
+      const tex=new THREE.CanvasTexture(canvas);
+      tex.colorSpace=THREE.SRGBColorSpace;
+      const sprite=new THREE.Sprite(new THREE.SpriteMaterial({
+        map:tex,transparent:true,depthTest:false,depthWrite:false
+      }));
+      sprite.scale.set(scale,scale,1);
+      sprite.renderOrder=35;
+      return sprite;
+    }
+    // Tick marks are narrow rectangular bars, not floating spherical dots.
+    const tickMaterial = new THREE.MeshBasicMaterial({
+      color, transparent:true, opacity:0.98,
+      side:THREE.DoubleSide, depthWrite:false, depthTest:true
+    });
+    for (let i = 0; i < divisions; i++) {
+      // Coronal and sagittal zero at zenith; transverse zero at east.
+      // Clockwise numerical progression: the rudewise countdown hand
+      // then points to the numeral matching the time remaining.
+      const angle = (name.startsWith("Transverse") ? 0 : Math.PI/2) - (i / divisions) * Math.PI * 2;
+      const major = (i % majorEvery === 0);
+      const innerRadius = R - (major ? (divisions===25?0.115:0.16) : 0.055);
+      const outerRadius = R - 0.018;
+      const length = outerRadius - innerRadius;
+      const tick = new THREE.Mesh(
+        new THREE.PlaneGeometry(major ? 0.026 : 0.012, length),
+        tickMaterial
+      );
+      tick.position.set(
+        Math.cos(angle) * (innerRadius + outerRadius) / 2,
+        Math.sin(angle) * (innerRadius + outerRadius) / 2,
+        0.012
+      );
+      tick.rotation.z = angle - Math.PI / 2;
+      tick.renderOrder = 22;
+      group.add(tick);
+      if((divisions===25 && i%5===0) || (divisions===10) || (divisions===100 && i%10===0)){
+        const label=numeralSprite(i,divisions===100?0.18:0.15);
+        const radius=R-(divisions===25?0.18:(divisions===100?0.31:0.29));
+        label.position.set(Math.cos(angle)*radius,Math.sin(angle)*radius,0.045);
+        group.add(label);
+        group.userData.numerals.push(label);
+      }
+    }
+    group.userData.face=face;
+    group.userData.ringMaterials=group.children.filter(o=>o!==face).map(o=>o.material);
+    return group;
+  }
+
+  // Exact mutually orthogonal world planes: XY, YZ and XZ.
+  // Camera obliquity alone makes the sagittal plane visible.
+  // Plane normals: coronal +Z, sagittal +X, transverse +Y.
+  const coronal = makePlane("Coronal plane · 25 centares", 0x4809e2, [0, 0, 0], 25, 5);
+  // Pure yaw preserves the sagittal plane's north pole exactly at the
+  // same 3D zenith as the coronal plane's zero-hour marker.
+  const sagittal = makePlane("Sagittal plane · 10 decols", 0x01938c, [0, Math.PI/2, 0], 10, 1);
+  const transverse = makePlane("Transverse plane · 100 pulsites", 0xff7001, [-Math.PI/2, 0, 0], 100, 10);
+
+
+  let numeralsHidden=false;
+  document.getElementById("toggleNumerals").addEventListener("click",()=>{
+    numeralsHidden=!numeralsHidden;
+    for(const plane of [coronal,sagittal,transverse]){
+      for(const label of plane.userData.numerals) label.visible=!numeralsHidden;
+    }
+    const btn=document.getElementById("toggleNumerals");
+    btn.textContent=numeralsHidden?"Hiện chữ số":"Ẩn chữ số";
+    btn.setAttribute("aria-pressed",String(numeralsHidden));
+  });
+
+  // Clock engine copied from the working 2D Retrograde V5: 100000 units/day,
+  // 25000 per quartol; hour, minute, second angles are countdown values.
+  const DAY_UNITS=100000;
+  const pad2=n=>String(n).padStart(2,"0");
+  const quartols=[
+    {id:"N",name:"Đêm",end:"mốc Bình minh",endCode:"CD",startCode:"CM",face:"#549f24",palette:[0x438832,0x286c26,0x72bd46]},
+    {id:"M",name:"Buổi sáng",end:"mốc Chính trưa",endCode:"CN",startCode:"CD",face:"#5b71af",palette:[0x5b71af,0x304b9c,0x7c9cdb]},
+    {id:"A",name:"Buổi chiều",end:"mốc Hoàng hôn",endCode:"CE",startCode:"CN",face:"#e44934",palette:[0xc75055,0xa92516,0xef5037]},
+    {id:"E",name:"Buổi tối",end:"mốc Nửa đêm",endCode:"CM",startCode:"CE",face:"#d9bf00",palette:[0xd6b62e,0xa78400,0xf4d95e]}
+  ];
+  function parts(rem){
+    rem=Math.max(0,Math.min(25000,rem));
+    const h=Math.floor(rem/1000),v=rem-h*1000;
+    return {h,m:Math.floor(v/100),s:Math.floor(v%100)};
+  }
+  function stateAt(units){
+    const d=((units%DAY_UNITS)+DAY_UNITS)%DAY_UNITS;
+    const idx=Math.min(3,Math.floor(d/25000)),within=d-idx*25000;
+    return {q:quartols[idx],idx,remaining:25000-within,units:d};
+  }
+  function reverseText(q,rem){
+    const p=parts(rem);
+    return `${q.id}${pad2(p.h)}.${p.m}${pad2(p.s)}-${q.endCode}`;
+  }
+  function parseReverse(s){
+    const m=s.trim().toUpperCase().match(/^([NMAE])(\d{1,2})\.(\d)(\d{2})(?:-C(D|N|E|M))?$/);
+    if(!m)throw Error("Nhập Qhh.mss, ví dụ A24.099-CE.");
+    const idx=quartols.findIndex(q=>q.id===m[1]),q=quartols[idx];
+    const h=Number(m[2]),mi=Number(m[3]),sec=Number(m[4]);
+    if(h>25||(h===25&&(mi!==0||sec!==0)))throw Error("Cếntox phải từ 00 đến 25; 25 chỉ được nhập là 25.000.");
+    if(m[5]&&m[5]!==q.endCode[1])throw Error(`Hậu tố phải là -${q.endCode}.`);
+    return ((idx*25000)+(25000-(h*1000+mi*100+sec)))%DAY_UNITS;
+  }
+  function decimalFromConventionalMs(ms){
+    const decimalDay=(ms/86400000)*10,h=Math.floor(decimalDay);
+    const m=Math.floor((decimalDay-h)*100);
+    const sec=Math.floor((((decimalDay-h)*100)-m)*100);
+    return `${h}.${pad2(m)}${pad2(sec)}`;
+  }
+  function conventionalMsAt(units){return (((units%DAY_UNITS)+DAY_UNITS)%DAY_UNITS)/DAY_UNITS*86400000;}
+  function sexagesimal(ms){
+    const secs=Math.floor(ms/1000)%86400,h=Math.floor(secs/3600),m=Math.floor(secs%3600/60),s=secs%60;
+    return {full:`${pad2(h)}:${pad2(m)}:${pad2(s)}`,
+      twelve:`${h%12||12}:${pad2(m)}:${pad2(s)}${h<12?"am":"pm"}`};
+  }
+
+  // All three hands are authored in each plane's own local XY coordinates.
+  // Angle zero points up; positive angle runs clockwise around the plane,
+  // which is the correct countdown position from 2D V5.
+  // Narrow triangular-section hands with a continuously tapered ridge.
+  // Their mounting portions are tucked into the bearing; the ridge follows
+  // the bearing curvature before continuing as a straight tapered spine.
+  function makeHand(group,length,width,color){
+    const R=0.19, bottom=0.023;
+    const stations=[0.105,0.14,0.17,0.205,0.24,length];
+    const vertices=[];
+    for(const y of stations){
+      const w=width*Math.max(0,(length-y)/(length-0.105));
+      // Within the bearing's footprint, the ridge follows its surface.
+      // Beyond it, the ridge is the apex of the triangular hand.
+      const ridgeOnBall=y<R ? Math.sqrt(R*R-y*y) : 0;
+      const ridge=Math.max(bottom+w*0.96,ridgeOnBall);
+      vertices.push([-w/2,y,bottom],[w/2,y,bottom],[0,y,ridge]);
+    }
+    const positions=[];
+    function tri(a,b,c){for(const i of [a,b,c])positions.push(...vertices[i]);}
+    for(let i=0;i<stations.length-1;i++){
+      const a=3*i,b=a+3;
+      tri(a,b,b+1);tri(a,b+1,a+1); // underside
+      tri(a,a+2,b+2);tri(a,b+2,b); // left slope
+      tri(a+2,a+1,b+1);tri(a+2,b+1,b+2); // right slope
+    }
+    tri(0,1,2);
+    const geom=new THREE.BufferGeometry();
+    geom.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+    geom.computeVertexNormals();
+    const material=new THREE.MeshLambertMaterial({
+      color,emissive:new THREE.Color(color),emissiveIntensity:0.22,
+      side:THREE.DoubleSide,depthTest:true,depthWrite:true
+    });
+    const mesh=new THREE.Mesh(geom,material);
+    mesh.renderOrder=55;
+    const assembly=new THREE.Group();assembly.add(mesh);group.add(assembly);
+    return assembly;
+  }
+  // Remaining-time sectors, each identified by its own plane colour.
+  // These use the same countdown fractions as the corresponding hands.
+  function makeRemainingSector(group,color){
+    const material=new THREE.MeshBasicMaterial({
+      color,transparent:true,opacity:0.37,
+      side:THREE.DoubleSide,depthTest:true,depthWrite:true
+    });
+    const mesh=new THREE.Mesh(new THREE.BufferGeometry(),material);
+    // Keep the sectors in the depth buffer so the intersecting planes
+    // cannot blend their far-side wedges over nearer geometry.
+    mesh.position.z=0.022;
+    mesh.renderOrder=24;
+    group.add(mesh);
+    return mesh;
+  }
+  const remainingSectors=[makeRemainingSector(coronal,0x4809e2),makeRemainingSector(sagittal,0x01938c),makeRemainingSector(transverse,0xff7001)];
+  function updateRemainingSector(mesh,fraction){
+    // Remaining arc: starts immediately AFTER the hand and ends at zero.
+    // A full cycle is represented by a complete sector, not an empty one.
+    const count=Math.max(2,Math.ceil(fraction*100));
+    const vertices=[0,0,0];
+    for(let i=0;i<=count;i++){
+      const zero=(mesh===remainingSectors[2]?0:Math.PI/2);
+      const a=zero-Math.PI*2*fraction+Math.PI*2*fraction*i/count;
+      vertices.push(Math.cos(a)*1.71,Math.sin(a)*1.71,0);
+    }
+    const indices=[];
+    for(let i=1;i<=count;i++)indices.push(0,i,i+1);
+    const g=new THREE.BufferGeometry();
+    g.setAttribute("position",new THREE.Float32BufferAttribute(vertices,3));
+    g.setIndex(indices);g.computeVertexNormals();
+    mesh.geometry.dispose();mesh.geometry=g;
+  }
+  const hourHand=makeHand(coronal,1.16,0.125,0xb36aff);
+  const minuteHand=makeHand(sagittal,1.84,0.100,0x01938c);
+  const secondHand=makeHand(transverse,1.69,0.048,0xff7001);
+  // The hub is drawn after the hands, hiding their inner ends.
+  const sphereQuartolColors=[0x29cd16,0x1e6bc5,0xff3525,0xfcd014];
+  // Brightened morning blue remains legible on the black background.
+  const notationColors=["#29cd16", "#5aaaff", "#ff3525", "#fcd014"];
+  let currentQuartol=-1;
+  function applyQuartolPalette(index){
+    if(index===currentQuartol)return;
+    currentQuartol=index;
+    const color=sphereQuartolColors[index];
+    glass.material.uniforms.glassColor.value.setHex(color);
+    rim.material.uniforms.rimColor.value.setHex(color);
+    document.getElementById("remainingLegendDot").style.color=notationColors[index];
+  }
+  let alternateAnchor=null,alternateSetAt=0;
+  const readout=document.getElementById("clockReadout");
+  const status=document.getElementById("timeStatus");
+  function currentValues(){
+    if(alternateAnchor===null){
+      const now=new Date();
+      const ms=now.getHours()*3600000+now.getMinutes()*60000+now.getSeconds()*1000+now.getMilliseconds();
+      return {units:ms/86400000*DAY_UNITS,ms};
+    }
+    const units=(alternateAnchor+(Date.now()-alternateSetAt)/86400000*DAY_UNITS)%DAY_UNITS;
+    return {units,ms:conventionalMsAt(units)};
+  }
+  function drawClock(){
+    const {units,ms}=currentValues();
+    const {q,remaining,idx}=stateAt(units);
+    applyQuartolPalette(idx);
+    hourHand.rotation.z=-(remaining/25000)*Math.PI*2;
+    minuteHand.rotation.z=-((remaining%1000)/1000)*Math.PI*2;
+    secondHand.rotation.z=-Math.PI/2-((remaining%100)/100)*Math.PI*2;
+    updateRemainingSector(remainingSectors[0],remaining/25000);
+    updateRemainingSector(remainingSectors[1],(remaining%1000)/1000);
+    updateRemainingSector(remainingSectors[2],(remaining%100)/100);
+    const conventional=sexagesimal(ms);
+    const remainingParts=parts(remaining);
+    const expanded=`${q.name} ${remainingParts.h} cếntox, ${remainingParts.m} đánh dấu dài và ${pad2(remainingParts.s)} nhịp đập còn lại đến ${q.end}`;
+    readout.innerHTML=`<strong style="color:${notationColors[idx]};font-size:22px">${reverseText(q,remaining)}</strong><span style="line-height:1.4;margin:5px 0 7px">${expanded}</span>`;
+    document.getElementById("secondaryReadout").innerHTML=`<span>Thuận chiều: ${decimalFromConventionalMs(ms)}</span><span>Giờ 24 tiếng: ${conventional.full}</span><span>Giờ 12 tiếng: ${conventional.twelve}</span>`;
+  }
+  function activateAlternate(){
+    try{
+      alternateAnchor=parseReverse(document.getElementById("alternateTime").value);
+      alternateSetAt=Date.now();status.textContent="Đang chạy giờ thay thế";drawClock();
+    }catch(e){status.textContent=e.message;}
+  }
+  document.getElementById("setAlternate").addEventListener("click",activateAlternate);
+  document.getElementById("alternateTime").addEventListener("keydown",e=>{
+    if(e.key==="Enter"){e.preventDefault();activateAlternate();}
+  });
+  document.getElementById("returnLocal").addEventListener("click",()=>{
+    alternateAnchor=null;status.textContent="Giờ địa phương running";drawClock();
+  });
+
+  // Small polished steel bearing at the common intersection of the planes.
+  const hub = new THREE.Mesh(
+    new THREE.SphereGeometry(0.19, 64, 48),
+    new THREE.MeshStandardMaterial({
+      color:0xb9c2cc, metalness:0.88, roughness:0.29,
+      envMapIntensity:1.05
+    })
+  );
+  // Opaque bearing participates in the same depth buffer as all three hands.
+  // It conceals only the hand sections that are physically behind its surface.
+  hub.material.depthTest = true;
+  hub.material.depthWrite = true;
+  hub.renderOrder = 55;
+  globeGroup.add(hub);
+
+  // Approved optical reference: retain the original glass sphere and
+  // material settings unchanged from the successful standalone test.
+  // Very fine glass surface microtexture, rather than an opaque smoky tint.
+  // The normal perturbation is deliberately tiny so the internal geometry
+  // remains legible and the rectangular softboxes retain sharp edges.
+  function makeGlassMicrotexture() {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 256;
+    const ctx = c.getContext('2d');
+    const data = ctx.createImageData(256, 256);
+    let seed = 1847;
+    function rand() { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; }
+    for (let i = 0; i < data.data.length; i += 4) {
+      data.data[i] = 126 + Math.round(rand() * 3);
+      data.data[i+1] = 126 + Math.round(rand() * 3);
+      data.data[i+2] = 255;
+      data.data[i+3] = 255;
+    }
+    ctx.putImageData(data, 0, 0);
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(4, 2);
+    return t;
+  }
+  const microtexture = makeGlassMicrotexture();
+
+  // A single, fixed softbox highlight and curved surface lighting.
+  // Both are calculated from view-space normals, so the highlight does not
+  // rotate with the clock, and the shading makes the silhouette spherical.
+  const glass = new THREE.Mesh(
+    new THREE.SphereGeometry(2,160,112),
+    new THREE.ShaderMaterial({
+      transparent:true,depthWrite:false,depthTest:false,side:THREE.FrontSide,
+      uniforms:{glassColor:{value:new THREE.Color(0xff3525)},glassAlpha:{value:0x52/255}},
+      vertexShader:`varying vec3 vN;
+        void main(){vN=normalize(normalMatrix*normal);
+          gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+      fragmentShader:`varying vec3 vN; uniform vec3 glassColor; uniform float glassAlpha;
+        float gauss(vec2 p,vec2 center,vec2 spread){
+          vec2 q=(p-center)/spread;
+          return exp(-dot(q,q));
+        }
+        void main(){
+          vec3 n=normalize(vN);
+          float facing=clamp(n.z,0.0,1.0);
+          float edge=pow(1.0-facing,2.15);
+          // A: long, curved, upper-left grazing reflection following
+          // the projected circular silhouette, rather than a straight stripe.
+          float angle=atan(n.y,n.x);
+          float radial=length(n.xy);
+          float arcAngular=exp(-pow((angle-2.36)/0.73,4.0));
+          float arcRadial=exp(-pow((radial-0.93)/0.047,2.0));
+          float curvedLight=arcAngular*arcRadial;
+          float arcHalo=arcAngular*exp(-pow((radial-0.88)/0.115,2.0));
+          // B: four very broad, diffused pools of reflected ambient light.
+          float pool=0.0;
+          pool+=0.42*gauss(n.xy,vec2(-0.46,0.47),vec2(0.34,0.28));
+          pool+=0.36*gauss(n.xy,vec2(0.48,0.44),vec2(0.32,0.32));
+          pool+=0.32*gauss(n.xy,vec2(-0.42,-0.44),vec2(0.36,0.30));
+          pool+=0.29*gauss(n.xy,vec2(0.47,-0.45),vec2(0.35,0.32));
+          // Additional localised milky reflection at the upper-left shoulder,
+          // with a bright centre and a broad, smoothly fading halo.
+          float shoulder=gauss(n.xy,vec2(-0.63,0.56),vec2(0.13,0.16));
+          float shoulderHalo=gauss(n.xy,vec2(-0.62,0.54),vec2(0.24,0.25));
+          // C: a broader darkening towards the circumference.
+          float broadShade=smoothstep(0.48,0.98,radial);
+          float diffuse=0.92+0.08*max(dot(n,normalize(vec3(-0.46,0.69,0.56))),0.0);
+          vec3 base=glassColor*diffuse;
+          base*=1.0-0.18*broadShade;
+          vec3 lit=mix(base,vec3(1.0,0.995,0.99),
+            clamp(pool*0.85+curvedLight*1.75+arcHalo*0.55+shoulder*1.55+shoulderHalo*0.75,0.0,0.985));
+          // Exact RGBA alpha #52 (82/255). The separate rim layer
+          // retains its edge shading without changing the sphere's base alpha.
+          float shine=clamp(curvedLight*0.48+shoulder*0.36+shoulderHalo*0.11+pool*0.10,0.0,0.50);
+          gl_FragColor=vec4(lit,clamp(glassAlpha+shine,0.0,0.78));
+        }`
+    })
+  );
+  glass.renderOrder=40;
+  globeGroup.add(glass);
+  // Subtle coloured rim reinforces curvature without masking the interior.
+  const rim = new THREE.Mesh(new THREE.SphereGeometry(2.002,128,96),
+    new THREE.ShaderMaterial({
+      transparent:true,depthWrite:false,depthTest:false,
+      uniforms:{rimColor:{value:new THREE.Color(0xff3525)}},
+      vertexShader:`varying vec3 n;void main(){n=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+      fragmentShader:`varying vec3 n;uniform vec3 rimColor;void main(){float edge=pow(1.0-abs(normalize(n).z),5.0);gl_FragColor=vec4(rimColor,edge*0.27);}`
+    })
+  );
+  rim.renderOrder=45;
+  globeGroup.add(rim);
+
+  // Soft contact shadow beneath the globe on an invisible floor.
+  const shadowCanvas=document.createElement('canvas');
+  shadowCanvas.width=256;shadowCanvas.height=256;
+  const sh=shadowCanvas.getContext('2d');
+  const grad=sh.createRadialGradient(128,128,5,128,128,126);
+  grad.addColorStop(0,'rgba(48,36,35,0.54)');
+  grad.addColorStop(0.30,'rgba(67,48,43,0.32)');
+  grad.addColorStop(1,'rgba(80,58,52,0)');
+  sh.fillStyle=grad;sh.fillRect(0,0,256,256);
+  const shadow=new THREE.Mesh(new THREE.PlaneGeometry(4.0,2.6),
+    new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(shadowCanvas),transparent:true,depthWrite:false,depthTest:false}));
+  shadow.rotation.x=-Math.PI/2;
+  shadow.position.set(0,-2.06,0);
+  shadow.renderOrder=0;
+  scene.add(shadow);
+
+  // Equatorial guide omitted; it is not part of the clock design.
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.055;
+  controls.enableZoom = true;
+  controls.minZoom = 0.7;
+  controls.maxZoom = 2.4;
+  controls.target.set(0,0,0);
+  controls.update();
+  // Save the revised elevated, slightly oblique initial view, including zoom and target.
+  controls.saveState();
+  document.getElementById("resetOrientation").addEventListener("click", () => {
+    controls.reset();
+    controls.update();
+  });
+
+  function resize() {
+    const dimensions = stageSize();
+    const aspect = dimensions.width / dimensions.height;
+    camera.left = -viewHeight * aspect / 2;
+    camera.right = viewHeight * aspect / 2;
+    camera.top = viewHeight / 2;
+    camera.bottom = -viewHeight / 2;
+    camera.updateProjectionMatrix();
+    renderer.setSize(dimensions.width, dimensions.height);
+  }
+  window.addEventListener('resize', resize);
+  if (typeof ResizeObserver !== "undefined") new ResizeObserver(resize).observe(host);
+
+  renderer.setAnimationLoop(() => {
+    controls.update();
+    drawClock();
+    renderer.render(scene, camera);
+  });
+} catch (error) {
+  reportError(error);
+}
+</script>
+</body>
+</html>
